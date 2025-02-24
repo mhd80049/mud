@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحويل الصوت إلى نص والتقويم الهجري والميلادي</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button, input[type="date"] {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>تحويل الصوت إلى نص</h1>
+    <p>اضغط على الزر أدناه للتحدث، وسيتم تحويل الصوت إلى نص.</p>
+    <button id="start-recognition">ابدأ التسجيل</button>
+    <textarea id="result" placeholder="النص المحول سيظهر هنا..."></textarea>
+
+    <h2>اختيار التاريخ</h2>
+    <label for="gregorian">التاريخ الميلادي:</label>
+    <input type="date" id="gregorian" onchange="convertToHijri()">
+    <p id="hijri-result">التاريخ الهجري: </p>
+</div>
+
+<script>
+    // تحويل الصوت إلى نص باستخدام SpeechRecognition API
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    const resultElement = document.getElementById('result');
+    const startButton = document.getElementById('start-recognition');
+
+    recognition.lang = 'ar-SA'; // اللغة العربية
+
+    startButton.addEventListener('click', () => {
+        recognition.start();
+    });
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        resultElement.value = transcript; // وضع النص في مربع النص
+    };
+
+    // تحويل التاريخ الميلادي إلى هجري
+    function convertToHijri() {
+        const gregorianDate = document.getElementById('gregorian').value;
+        if (gregorianDate) {
+            fetch(`https://api.aladhan.com/v1/gToH?date=${gregorianDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const hijriDate = data.data.hijri.date;
+                    document.getElementById('hijri-result').textContent = 'التاريخ الهجري: ' + hijriDate;
+                })
+                .catch(error => console.error('Error fetching Hijri date:', error));
+        }
+    }
+</script>
+
+</body>
+</html>
